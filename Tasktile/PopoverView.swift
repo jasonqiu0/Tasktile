@@ -8,11 +8,14 @@
 import SwiftUI
 
 struct PopoverView: View {
+    @EnvironmentObject var appDelegate: AppDelegate
+
     var body: some View {
         VStack {
             CalendarView(month: Calendar.current.component(.month, from: Date()),
                          year: Calendar.current.component(.year, from: Date()))
-                        
+            .environmentObject(appDelegate)
+
             Spacer()
         }
         .frame(width: 200, height: 260)

@@ -39,42 +39,58 @@ func getDays(month: Int, year: Int) -> [Day] {
 struct CalendarView: View {
     let month: Int
     let year: Int
-    
+    let showDate: Bool = false
+    @EnvironmentObject var appDelegate: AppDelegate  // Injected appDelegate
+
     var body: some View {
         let gridItems = Array(repeating: GridItem(.flexible()), count: 7)
         let days = getDays(month: month, year: year)
-        
-        VStack (spacing: 10) {
-            Button("View Tasks") {}
+
+        VStack {
+            HStack {
+                Button("View Tasks") {
+                    print("Button pressed: View Tasks")
+                    appDelegate.openNewWindow(view: TasksWindow(), title: "Tasks")
+                }
                 .buttonStyle(BorderedButtonStyle())
-                .padding()
-        }
-        
-        Divider()
-        
-        HStack(spacing: 0.1) {
-            ForEach(["M", "T", "W", "T", "F", "S", "S"], id: \.self) {day in
-            Text(day)
-                .frame(maxWidth: 26)
-                .font(.headline)
-                .multilineTextAlignment(.center)
+
+                Button("Settings") {}
+                    .buttonStyle(BorderedButtonStyle())
+                
+
+                Button(action: {
+                    NSApplication.shared.terminate(nil)
+                }) {
+                    Image(systemName: "door.left.hand.open")
+                }
             }
-        }
-        
-        LazyVGrid(columns: gridItems, spacing: 5) {
-            ForEach(days, id: \.self) { day in
-                ZStack {
-                    RoundedRectangle(cornerRadius: 5)
-                        .fill(day.isPlaceholder ? Color.clear : Color(red: 0, green: 0.9, blue: 0.5).opacity(0.2))
-                        .frame(width: 20,height: 20)
-                    
-                    if !day.isPlaceholder {
+
+            Divider()
+
+            HStack(spacing: 0.1) {
+                ForEach(["M", "T", "W", "T", "F", "S", "S"], id: \.self) { day in
+                    Text(day)
+                        .frame(maxWidth: 26)
+                        .font(.headline)
+                        .multilineTextAlignment(.center)
+                }
+            }
+
+            LazyVGrid(columns: gridItems, spacing: 5) {
+                ForEach(days, id: \.self) { day in
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 5)
+                            .fill(day.isPlaceholder ? Color.clear : Color(red: 0, green: 0.9, blue: 0.5).opacity(0.2))
+                            .frame(width: 20,height: 20)
+                        if showDate {
+                            if !day.isPlaceholder {
+                                Text("\(day.number)")
+                            }
+                        }
                     }
                 }
             }
-            
+            .padding()
         }
-        .padding()
     }
-    
 }
