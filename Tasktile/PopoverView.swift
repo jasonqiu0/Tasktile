@@ -10,12 +10,12 @@ import SwiftUI
 struct PopoverView: View {
     var body: some View {
         VStack {
-            Text("Tasktile")
-                .font(.headline)
-            Text("Test")
-                .font(.subheadline)
+            CalendarView(month: Calendar.current.component(.month, from: Date()),
+                         year: Calendar.current.component(.year, from: Date()))
+                        
+            Spacer()
         }
-        .frame(width: 300, height: 200)
+        .frame(width: 200, height: 200)
         .padding()
     }
 }
