@@ -19,6 +19,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         popover.contentViewController = NSHostingController(rootView: PopoverView())
         
+        
 
         statusBarController = StatusBarController(popover: popover)
     }

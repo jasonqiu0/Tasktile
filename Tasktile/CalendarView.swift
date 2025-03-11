@@ -44,6 +44,14 @@ struct CalendarView: View {
         let gridItems = Array(repeating: GridItem(.flexible()), count: 7)
         let days = getDays(month: month, year: year)
         
+        VStack (spacing: 10) {
+            Button("View Tasks") {}
+                .buttonStyle(BorderedButtonStyle())
+                .padding()
+        }
+        
+        Divider()
+        
         HStack(spacing: 0.1) {
             ForEach(["M", "T", "W", "T", "F", "S", "S"], id: \.self) {day in
             Text(day)
@@ -57,13 +65,10 @@ struct CalendarView: View {
             ForEach(days, id: \.self) { day in
                 ZStack {
                     RoundedRectangle(cornerRadius: 5)
-                        .fill(day.isPlaceholder ? Color.clear : Color.blue.opacity(0.1))
+                        .fill(day.isPlaceholder ? Color.clear : Color(red: 0, green: 0.9, blue: 0.5).opacity(0.2))
                         .frame(width: 20,height: 20)
-                        //.border(Color.gray, width: 0.5)
                     
                     if !day.isPlaceholder {
-                        //Text("\(day.number)")
-                            //.foregroundColor(.primary)
                     }
                 }
             }
