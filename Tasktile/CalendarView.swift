@@ -37,11 +37,11 @@ func getDays(month: Int, year: Int) -> [Day] {
 }
 
 struct CalendarView: View {
+    @EnvironmentObject var appDelegate: AppDelegate
     let month: Int
     let year: Int
-    let showDate: Bool = false
-    @EnvironmentObject var appDelegate: AppDelegate  // Injected appDelegate
-
+    //let showDate: Bool = false
+    
     var body: some View {
         let gridItems = Array(repeating: GridItem(.flexible()), count: 7)
         let days = getDays(month: month, year: year)
@@ -54,7 +54,9 @@ struct CalendarView: View {
                 }
                 .buttonStyle(BorderedButtonStyle())
 
-                Button("Settings") {}
+                Button("Settings") {
+                    appDelegate.openNewWindow(view: SettingsWindow(), title: "Settings")
+                }
                     .buttonStyle(BorderedButtonStyle())
                 
 
@@ -82,7 +84,7 @@ struct CalendarView: View {
                         RoundedRectangle(cornerRadius: 5)
                             .fill(day.isPlaceholder ? Color.clear : Color(red: 0, green: 0.9, blue: 0.5).opacity(0.2))
                             .frame(width: 20,height: 20)
-                        if showDate {
+                        if appDelegate.showDate {
                             if !day.isPlaceholder {
                                 Text("\(day.number)")
                             }

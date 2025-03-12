@@ -25,6 +25,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     var statusBarController: StatusBarController?
     var popover: NSPopover!
     var windows: [NSWindow] = []
+    
+    @Published var showDate: Bool = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         popover = NSPopover()
