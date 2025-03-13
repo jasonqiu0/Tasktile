@@ -14,7 +14,7 @@ struct SettingsWindow: View {
             
             List {
                 Toggle("Show date",isOn: $appDelegate.showDate)
-                Text("Setting2")
+                
             }
             
             Button("Close") {
@@ -22,7 +22,7 @@ struct SettingsWindow: View {
             }
             .padding()
         }
-        .frame(width: 300, height: 400)
+        .frame(width: 300, height: 200)
     }
 }
 

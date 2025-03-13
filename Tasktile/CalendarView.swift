@@ -53,11 +53,13 @@ struct CalendarView: View {
                     appDelegate.openNewWindow(view: TasksWindow(), title: "Tasks")
                 }
                 .buttonStyle(BorderedButtonStyle())
+                .disabled(appDelegate.openWindows["Tasks"]==true)
 
                 Button("Settings") {
                     appDelegate.openNewWindow(view: SettingsWindow(), title: "Settings")
                 }
                     .buttonStyle(BorderedButtonStyle())
+                    .disabled(appDelegate.openWindows["Settings"]==true)
                 
 
                 Button(action: {

@@ -27,6 +27,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     var windows: [NSWindow] = []
     
     @Published var showDate: Bool = false
+    @Published var openWindows: [String: Bool] = ["Tasks": false, "Settings": false]
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         popover = NSPopover()
@@ -39,9 +40,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 
     func openNewWindow<Content: View>(view: Content, title: String) {
         print("Opening new window: \(title)")
+        guard openWindows[title] == false else {
+                    print("\(title) window is already open.")
+                    return
+                }
+
+                print("Opening new window: \(title)")
+                openWindows[title] = true
 
         let window = NSWindow(
-            contentRect: NSRect(x: 600, y: 600, width: 300, height: 400),
+            contentRect: NSRect(x: 765, y: 600, width: 300, height: 400),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -55,7 +63,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         windows.append(window)
 
         NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: window, queue: nil) { [weak self] _ in
-            self?.windows.removeAll { $0 == window }
+            self?.openWindows[title] = false
         }
     }
 }
