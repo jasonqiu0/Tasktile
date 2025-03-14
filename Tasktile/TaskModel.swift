@@ -16,9 +16,9 @@ struct Task: Identifiable, Codable {
 }
 
 enum RepeatOption: String, Codable, CaseIterable {
-    case none = "Only This Day"
-    case daily = "Repeats Daily"
-    case weekly = "Repeats Weekly"
+    case none = "Only this date"
+    case daily = "Daily"
+    case weekly = "Weekly"
     case specificDate = "Specific Date"
 }
 

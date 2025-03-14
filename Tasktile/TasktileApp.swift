@@ -56,7 +56,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
                 openWindows[title] = true
 
         let window = NSWindow(
-            contentRect: NSRect(x: 765, y: 600, width: 300, height: 400),
+            contentRect: NSRect(x: 700, y: 600, width: 300, height: 400),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false

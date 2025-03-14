@@ -88,13 +88,16 @@ struct CalendarView: View {
                         
                         let tasksForDay = getTasksForDay(day.number)
                         
-                        RoundedRectangle(cornerRadius: 5)
-                            .fill(colorForTaskCompletion(tasksForDay))
-                            .fill(day.isPlaceholder ? Color.clear : Color(red: 0, green: 0.9, blue: 0.5).opacity(0.2))
-                            .frame(width: 20,height: 20)
-                        
-                        if appDelegate.showDate {
-                            if !day.isPlaceholder {
+                        if !day.isPlaceholder {
+                            RoundedRectangle(cornerRadius: 5)
+                                .fill(tasksForDay.isEmpty ? Color.clear : colorForTaskCompletion(tasksForDay))
+                                .overlay(
+                                    tasksForDay.isEmpty ? RoundedRectangle(cornerRadius: 5)
+                                        .stroke(Color.gray.opacity(0.2), lineWidth: 1) : nil
+                                )
+                                .frame(width: 20, height: 20)
+
+                            if appDelegate.showDate {
                                 Text("\(day.number)")
                             }
                         }
@@ -125,14 +128,21 @@ struct CalendarView: View {
 
     private func isSameWeekday(_ taskDate: Date, _ calendarDay: Int) -> Bool {
         let calendar = Calendar.current
-        return calendar.component(.weekday, from: taskDate) == calendar.component(.weekday, from: DateComponents(year: year, month: month, day: calendarDay).date!)
+
+        guard let generatedDate = calendar.date(from: DateComponents(year: year, month: month, day: calendarDay)) else {
+            print("Error: Invalid date generated for day \(calendarDay)")
+            return false
+        }
+
+        return calendar.component(.weekday, from: taskDate) == calendar.component(.weekday, from: generatedDate)
     }
 
     private func colorForTaskCompletion(_ tasksForDay: [Task]) -> Color {
-        if tasksForDay.isEmpty { return Color.gray.opacity(0.2) }
+        if tasksForDay.isEmpty { return Color.clear }
         let completedTasks = tasksForDay.filter { $0.completed }.count
+        if completedTasks == 0 { return Color.gray.opacity(0.3) }
         let opacity = Double(completedTasks) / Double(tasksForDay.count)
-        return Color.white.opacity(opacity)
+        return Color.green.opacity(opacity)
     }
     
     
