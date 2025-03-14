@@ -12,7 +12,26 @@ struct Task: Identifiable, Codable {
     var title: String
     var date: Date
     var repeatOption: RepeatOption
-    var completed: Bool = false
+    var completedDates: [String: Bool] = [:]
+
+    mutating func toggleCompletion(for date: Date) {
+        let dateString = formattedDate(date)
+        if let completed = completedDates[dateString] {
+            completedDates[dateString] = !completed
+        } else {
+            completedDates[dateString] = true
+        }
+    }
+
+    func isCompleted(for date: Date) -> Bool {
+        return completedDates[formattedDate(date)] ?? false
+    }
+
+    private func formattedDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: date)
+    }
 }
 
 enum RepeatOption: String, Codable, CaseIterable {

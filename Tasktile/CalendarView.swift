@@ -42,11 +42,11 @@ struct CalendarView: View {
     let year: Int
     @AppStorage("savedTasks") private var savedTasks: String = ""
     @State private var tasks: [Task] = []
-    
-    
+
     var body: some View {
         let gridItems = Array(repeating: GridItem(.flexible()), count: 7)
         let days = getDays(month: month, year: year)
+        let calendar = Calendar.current
 
         VStack {
             HStack {
@@ -55,14 +55,13 @@ struct CalendarView: View {
                     appDelegate.openNewWindow(view: TasksWindow(), title: "Tasks")
                 }
                 .buttonStyle(BorderedButtonStyle())
-                .disabled(appDelegate.openWindows["Tasks"]==true)
+                .disabled(appDelegate.openWindows["Tasks"] == true)
 
                 Button("Settings") {
                     appDelegate.openNewWindow(view: SettingsWindow(), title: "Settings")
                 }
-                    .buttonStyle(BorderedButtonStyle())
-                    .disabled(appDelegate.openWindows["Settings"]==true)
-                
+                .buttonStyle(BorderedButtonStyle())
+                .disabled(appDelegate.openWindows["Settings"] == true)
 
                 Button(action: {
                     NSApplication.shared.terminate(nil)
@@ -84,13 +83,14 @@ struct CalendarView: View {
 
             LazyVGrid(columns: gridItems, spacing: 5) {
                 ForEach(days, id: \.self) { day in
+                    let generatedDate = calendar.date(from: DateComponents(year: year, month: month, day: day.number))
+
                     ZStack {
-                        
                         let tasksForDay = getTasksForDay(day.number)
-                        
-                        if !day.isPlaceholder {
+
+                        if !day.isPlaceholder, let generatedDate = generatedDate {
                             RoundedRectangle(cornerRadius: 5)
-                                .fill(tasksForDay.isEmpty ? Color.clear : colorForTaskCompletion(tasksForDay))
+                                .fill(colorForTaskCompletion(tasksForDay, on: generatedDate))
                                 .overlay(
                                     tasksForDay.isEmpty ? RoundedRectangle(cornerRadius: 5)
                                         .stroke(Color.white.opacity(0.2), lineWidth: 1) : nil
@@ -110,6 +110,7 @@ struct CalendarView: View {
             loadTasks()
         }
     }
+
     private func loadTasks() {
         if let data = savedTasks.data(using: .utf8), let decoded = try? JSONDecoder().decode([Task].self, from: data) {
             tasks = decoded
@@ -117,7 +118,7 @@ struct CalendarView: View {
             tasks = []
         }
     }
-    
+
     private func getTasksForDay(_ day: Int) -> [Task] {
         let calendar = Calendar.current
         return appDelegate.tasks.filter { task in
@@ -128,24 +129,21 @@ struct CalendarView: View {
 
     private func isSameWeekday(_ taskDate: Date, _ calendarDay: Int) -> Bool {
         let calendar = Calendar.current
-
         guard let generatedDate = calendar.date(from: DateComponents(year: year, month: month, day: calendarDay)) else {
             print("Error: Invalid date generated for day \(calendarDay)")
-            return false
+            return false // Prevent crash
         }
 
         return calendar.component(.weekday, from: taskDate) == calendar.component(.weekday, from: generatedDate)
     }
 
-    private func colorForTaskCompletion(_ tasksForDay: [Task]) -> Color {
+    private func colorForTaskCompletion(_ tasksForDay: [Task], on date: Date) -> Color {
         if tasksForDay.isEmpty { return Color.clear }
-        let completedTasks = tasksForDay.filter { $0.completed }.count
+
+        let completedTasks = tasksForDay.filter { $0.isCompleted(for: date) }.count
         if completedTasks == 0 { return Color.gray.opacity(0.3) }
+
         let opacity = Double(completedTasks) / Double(tasksForDay.count)
         return Color.green.opacity(opacity)
     }
-    
-    
-    
-    
 }

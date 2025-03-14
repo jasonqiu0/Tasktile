@@ -33,7 +33,7 @@ struct TasksWindow: View {
                 }
             }
             .pickerStyle(MenuPickerStyle())
-            .padding(.horizontal, 150)
+            .padding(.horizontal, 60)
 
          
             if taskViewOption == .specificDate {
@@ -45,10 +45,10 @@ struct TasksWindow: View {
                 ForEach(filteredTasks(), id: \.id) { task in
                     HStack {
                         Toggle("", isOn: Binding(
-                            get: { task.completed },
+                            get: { task.isCompleted(for: filterDate) },
                             set: { newValue in
                                 if let index = appDelegate.tasks.firstIndex(where: { $0.id == task.id }) {
-                                    appDelegate.tasks[index].completed = newValue
+                                    appDelegate.tasks[index].toggleCompletion(for: filterDate)
                                     appDelegate.saveTasks()
                                 }
                             }
@@ -67,12 +67,11 @@ struct TasksWindow: View {
                                 }
                             ))
                             .textFieldStyle(RoundedBorderTextFieldStyle())
-
-                            Text("Scheduled: \(formattedDate(task.date))")
+                            Text("Repeat: \(task.repeatOption.rawValue)")
                                 .font(.caption)
                                 .foregroundColor(.gray)
-
-                            Text("Repeat: \(task.repeatOption.rawValue)")
+                            
+                            Text("Scheduled: \(formattedDate(task.date))")
                                 .font(.caption)
                                 .foregroundColor(.gray)
                         }
@@ -81,7 +80,6 @@ struct TasksWindow: View {
                             deleteTask(task)
                         }) {
                             Image(systemName: "trash.fill")
-                                .foregroundColor(.red)
                         }
                     }
                 }
@@ -93,8 +91,6 @@ struct TasksWindow: View {
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .padding(.horizontal, 60)
 
-                DatePicker("Select Date", selection: $selectedDate, displayedComponents: .date)
-
                 Picker("Repeats", selection: $selectedRepeatOption) {
                     ForEach(RepeatOption.allCases, id: \.self) { option in
                         Text(option.rawValue).tag(option)
@@ -102,6 +98,8 @@ struct TasksWindow: View {
                 }
                 .pickerStyle(MenuPickerStyle())
                 .padding(.horizontal, 90)
+                
+                DatePicker("Select Date", selection: $selectedDate, displayedComponents: .date)
 
                 Button("Add Task") {
                     addTask()
@@ -115,7 +113,7 @@ struct TasksWindow: View {
             
             Spacer()
         }
-        .frame(width: 500, height: 600)
+        .frame(width: 360, height: 500)
     }
 
     private func filteredTasks() -> [Task] {
@@ -150,7 +148,6 @@ struct TasksWindow: View {
     private func deleteTask(_ task: Task) {
         withAnimation {
             if let index = appDelegate.tasks.firstIndex(where: { $0.id == task.id }) {
-                appDelegate.tasks[index].completed = false
                 appDelegate.tasks.remove(at: index)
             }
         }
