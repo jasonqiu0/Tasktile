@@ -67,7 +67,7 @@ struct CalendarView: View {
                 Button(action: {
                     NSApplication.shared.terminate(nil)
                 }) {
-                    Image(systemName: "door.left.hand.open")
+                    Image(systemName: "power")
                 }
             }
 
@@ -93,7 +93,7 @@ struct CalendarView: View {
                                 .fill(tasksForDay.isEmpty ? Color.clear : colorForTaskCompletion(tasksForDay))
                                 .overlay(
                                     tasksForDay.isEmpty ? RoundedRectangle(cornerRadius: 5)
-                                        .stroke(Color.gray.opacity(0.2), lineWidth: 1) : nil
+                                        .stroke(Color.white.opacity(0.2), lineWidth: 1) : nil
                                 )
                                 .frame(width: 20, height: 20)
 

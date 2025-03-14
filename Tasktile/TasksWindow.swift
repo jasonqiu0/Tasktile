@@ -10,14 +10,39 @@ import SwiftUI
 struct TasksWindow: View {
     @EnvironmentObject var appDelegate: AppDelegate
     @AppStorage("savedTasks") private var savedTasks: String = ""
+
     @State private var newTaskTitle: String = ""
     @State private var selectedDate = Date()
     @State private var selectedRepeatOption: RepeatOption = .none
 
+    @State private var taskViewOption: TaskViewOption = .allTasks
+    @State private var filterDate = Date()
+
+    enum TaskViewOption: String, CaseIterable {
+        case allTasks = "All Tasks"
+        case specificDate = "Tasks for a Specific Date"
+    }
+
     var body: some View {
         VStack {
+            Spacer()
+            
+            Picker("View:", selection: $taskViewOption) {
+                ForEach(TaskViewOption.allCases, id: \.self) { option in
+                    Text(option.rawValue).tag(option)
+                }
+            }
+            .pickerStyle(MenuPickerStyle())
+            .padding(.horizontal, 150)
+
+         
+            if taskViewOption == .specificDate {
+                DatePicker("Select Date", selection: $filterDate, displayedComponents: .date)
+                    .padding(.horizontal, 20)
+            }
+
             List {
-                ForEach(appDelegate.tasks, id: \.id) { task in
+                ForEach(filteredTasks(), id: \.id) { task in
                     HStack {
                         Toggle("", isOn: Binding(
                             get: { task.completed },
@@ -56,6 +81,7 @@ struct TasksWindow: View {
                             deleteTask(task)
                         }) {
                             Image(systemName: "trash.fill")
+                                .foregroundColor(.red)
                         }
                     }
                 }
@@ -90,6 +116,26 @@ struct TasksWindow: View {
             Spacer()
         }
         .frame(width: 500, height: 600)
+    }
+
+    private func filteredTasks() -> [Task] {
+        if taskViewOption == .allTasks {
+            return appDelegate.tasks
+        } else {
+            let calendar = Calendar.current
+            return appDelegate.tasks.filter { task in
+                let taskDay = calendar.component(.day, from: task.date)
+                let filterDay = calendar.component(.day, from: filterDate)
+
+                return taskDay == filterDay || task.repeatOption == .daily ||
+                       (task.repeatOption == .weekly && isSameWeekday(task.date, filterDate))
+            }
+        }
+    }
+
+    private func isSameWeekday(_ taskDate: Date, _ selectedDate: Date) -> Bool {
+        let calendar = Calendar.current
+        return calendar.component(.weekday, from: taskDate) == calendar.component(.weekday, from: selectedDate)
     }
 
     private func addTask() {
