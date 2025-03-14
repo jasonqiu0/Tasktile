@@ -40,7 +40,9 @@ struct CalendarView: View {
     @EnvironmentObject var appDelegate: AppDelegate
     let month: Int
     let year: Int
-    //let showDate: Bool = false
+    @AppStorage("savedTasks") private var savedTasks: String = ""
+    @State private var tasks: [Task] = []
+    
     
     var body: some View {
         let gridItems = Array(repeating: GridItem(.flexible()), count: 7)
@@ -83,9 +85,14 @@ struct CalendarView: View {
             LazyVGrid(columns: gridItems, spacing: 5) {
                 ForEach(days, id: \.self) { day in
                     ZStack {
+                        
+                        let tasksForDay = getTasksForDay(day.number)
+                        
                         RoundedRectangle(cornerRadius: 5)
+                            .fill(colorForTaskCompletion(tasksForDay))
                             .fill(day.isPlaceholder ? Color.clear : Color(red: 0, green: 0.9, blue: 0.5).opacity(0.2))
                             .frame(width: 20,height: 20)
+                        
                         if appDelegate.showDate {
                             if !day.isPlaceholder {
                                 Text("\(day.number)")
@@ -96,5 +103,39 @@ struct CalendarView: View {
             }
             .padding()
         }
+        .onAppear {
+            loadTasks()
+        }
     }
+    private func loadTasks() {
+        if let data = savedTasks.data(using: .utf8), let decoded = try? JSONDecoder().decode([Task].self, from: data) {
+            tasks = decoded
+        } else {
+            tasks = []
+        }
+    }
+    
+    private func getTasksForDay(_ day: Int) -> [Task] {
+        let calendar = Calendar.current
+        return appDelegate.tasks.filter { task in
+            let taskDay = calendar.component(.day, from: task.date)
+            return taskDay == day || task.repeatOption == .daily || (task.repeatOption == .weekly && isSameWeekday(task.date, day))
+        }
+    }
+
+    private func isSameWeekday(_ taskDate: Date, _ calendarDay: Int) -> Bool {
+        let calendar = Calendar.current
+        return calendar.component(.weekday, from: taskDate) == calendar.component(.weekday, from: DateComponents(year: year, month: month, day: calendarDay).date!)
+    }
+
+    private func colorForTaskCompletion(_ tasksForDay: [Task]) -> Color {
+        if tasksForDay.isEmpty { return Color.gray.opacity(0.2) }
+        let completedTasks = tasksForDay.filter { $0.completed }.count
+        let opacity = Double(completedTasks) / Double(tasksForDay.count)
+        return Color.white.opacity(opacity)
+    }
+    
+    
+    
+    
 }

@@ -28,6 +28,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     
     @Published var showDate: Bool = false
     @Published var openWindows: [String: Bool] = ["Tasks": false, "Settings": false]
+    @Published var tasks: [Task] = []
+    
+    @AppStorage("savedTasks") private var savedTasks: String = ""
+    
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         popover = NSPopover()
@@ -36,6 +40,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         popover.contentViewController = NSHostingController(rootView: PopoverView().environmentObject(self))
 
         statusBarController = StatusBarController(popover: popover)
+        
+        loadTasks()
+        
     }
 
     func openNewWindow<Content: View>(view: Content, title: String) {
@@ -66,4 +73,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             self?.openWindows[title] = false
         }
     }
+    
+    func saveTasks() {
+        if let encoded = try? JSONEncoder().encode(tasks) {
+            savedTasks = String(data: encoded, encoding: .utf8) ?? ""
+        }
+        objectWillChange.send()
+    }
+
+    func loadTasks() {
+            if let data = savedTasks.data(using: .utf8), let decoded = try? JSONDecoder().decode([Task].self, from: data) {
+                tasks = decoded
+            }
+        }
+    
 }

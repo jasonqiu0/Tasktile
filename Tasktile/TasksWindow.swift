@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct TasksWindow: View {
-    @AppStorage("savedTasks") private var savedTasks: String = ""  // Store tasks persistently
+    @EnvironmentObject var appDelegate: AppDelegate
+    @AppStorage("savedTasks") private var savedTasks: String = ""
     @State private var tasks: [Task] = []
     @State private var newTaskTitle: String = ""
     @State private var selectedDate = Date()
@@ -19,10 +20,19 @@ struct TasksWindow: View {
             List {
                 ForEach(tasks.indices, id: \.self) { index in
                     HStack {
+                        Toggle("", isOn: Binding(
+                            get: { appDelegate.tasks[index].completed },
+                            set: { newValue in
+                                appDelegate.tasks[index].completed = newValue
+                                appDelegate.saveTasks()
+                            }))
+                        .labelsHidden()
+                        .toggleStyle(CheckboxToggleStyle())
+                        
                         VStack(alignment: .leading) {
                             TextField("Enter Task", text: Binding(
-                                get: { tasks[index].title },
-                                set: { tasks[index].title = $0; saveTasks() }
+                                get: { appDelegate.tasks[index].title },
+                                set: { appDelegate.tasks[index].title = $0; appDelegate.saveTasks() }
                             ))
                             .textFieldStyle(RoundedBorderTextFieldStyle())
 
@@ -36,7 +46,8 @@ struct TasksWindow: View {
                         }
 
                         Button(action: {
-                            deleteTask(at: index)
+                            appDelegate.tasks.remove(at: index)
+                            appDelegate.saveTasks()
                         }) {
                             Image(systemName: "trash.fill")
                         }
@@ -75,13 +86,13 @@ struct TasksWindow: View {
 
     private func addTask() {
         let newTask = Task(title: newTaskTitle, date: selectedDate, repeatOption: selectedRepeatOption)
-        tasks.append(newTask)
+        appDelegate.tasks.append(newTask)
         newTaskTitle = ""
-        saveTasks()
+        appDelegate.saveTasks()
     }
 
     private func deleteTask(at index: Int) {
-        tasks.remove(at: index)
+        appDelegate.tasks.remove(at: index)
         saveTasks()
     }
 
