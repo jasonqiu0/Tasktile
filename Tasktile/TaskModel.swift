@@ -26,8 +26,15 @@ struct Task: Identifiable, Codable {
 
     func shouldRepeat(on date: Date) -> Bool {
         guard repeatOption != .none else { return false }
-        if let repeatUntil = repeatUntil, date > repeatUntil { return false }
-        return true
+        if date < self.date {
+                return false
+            }
+
+            if let repeatUntil = repeatUntil, date > repeatUntil {
+                return false
+            }
+
+            return true
     }
     
     func isCompleted(for date: Date) -> Bool {

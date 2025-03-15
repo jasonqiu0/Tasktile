@@ -129,12 +129,16 @@ struct CalendarView: View {
         let currentDate = calendar.date(from: DateComponents(year: year, month: month, day: day))
 
         return appDelegate.tasks.filter { task in
-            let taskDay = calendar.component(.day, from: task.date)
+            guard let taskStartDate = calendar.date(from: Calendar.current.dateComponents([.year, .month, .day], from: task.date)) else {
+                return false
+            }
+            let shouldRepeatFromNowOn = task.shouldRepeat(on: currentDate ?? Date()) && currentDate! >= taskStartDate
 
+            let taskDay = calendar.component(.day, from: task.date)
             let repeatsCorrectly = task.repeatOption == .daily ||
                                   (task.repeatOption == .weekly && isSameWeekday(task.date, day))
 
-            return (taskDay == day || repeatsCorrectly) &&
+            return (taskDay == day || (repeatsCorrectly && shouldRepeatFromNowOn)) &&
                    (task.repeatUntil == nil || (currentDate != nil && currentDate! <= task.repeatUntil!))
         }
     }
