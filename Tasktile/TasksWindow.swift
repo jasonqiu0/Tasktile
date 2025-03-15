@@ -19,7 +19,8 @@ struct TasksWindow: View {
     
     @State private var repeatUntilDate: Date = Date().addingTimeInterval(60*60*24*7)
     @State private var repeatIndefinitely: Bool = true
-
+    
+    @State private var confirmingDeletionForTask: Task? = nil
 
     enum TaskViewOption: String, CaseIterable {
         case allTasks = "All Tasks"
@@ -49,26 +50,30 @@ struct TasksWindow: View {
             List {
                 ForEach(filteredTasks(), id: \.id) { task in
                     HStack {
-                        if taskViewOption != .allTasks {
-                            Toggle("", isOn: Binding(
-                                get: { task.isCompleted(for: getCurrentFilterDate()) },
-                                set: { newValue in
-                                    if let index = appDelegate.tasks.firstIndex(where: { $0.id == task.id }) {
-                                        appDelegate.tasks[index].toggleCompletion(for: getCurrentFilterDate())
-                                        appDelegate.saveTasks()
-                                    }
+
+                        Toggle("", isOn: Binding(
+                            get: {
+                                let dateForCompletion = getCurrentCompletionDate()
+                                return task.isCompleted(for: dateForCompletion)
+                            },
+                            set: { newValue in
+                                if let idx = appDelegate.tasks.firstIndex(where: { $0.id == task.id }) {
+                                    let dateForCompletion = getCurrentCompletionDate()
+                                    appDelegate.tasks[idx].toggleCompletion(for: dateForCompletion)
+                                    appDelegate.saveTasks()
                                 }
-                            ))
-                            .labelsHidden()
-                            .toggleStyle(CheckboxToggleStyle())
-                        }
+                            }
+                        ))
+                        .labelsHidden()
+                        .toggleStyle(CheckboxToggleStyle())
+
 
                         VStack(alignment: .leading) {
                             TextField("Enter Task", text: Binding(
                                 get: { task.title },
                                 set: { newValue in
-                                    if let index = appDelegate.tasks.firstIndex(where: { $0.id == task.id }) {
-                                        appDelegate.tasks[index].title = newValue
+                                    if let idx = appDelegate.tasks.firstIndex(where: { $0.id == task.id }) {
+                                        appDelegate.tasks[idx].title = newValue
                                         appDelegate.saveTasks()
                                     }
                                 }
@@ -82,15 +87,37 @@ struct TasksWindow: View {
                             Text("Scheduled: \(formattedDate(task.date))")
                                 .font(.caption)
                                 .foregroundColor(.gray)
-                            
                         }
                         
 
-                        Button(action: {
-                            deleteTask(task)
-                        }) {
+                        Button {
+                            handleDelete(task)
+                        } label: {
                             Image(systemName: "trash.fill")
                         }
+                    }
+                    if let t = confirmingDeletionForTask,
+                       t.id == task.id,
+                       taskViewOption == .allTasks,
+                       task.repeatOption != .none {
+                        Text("Deleting in \"All Tasks\" View Mode will delete all occurrences of this repeating task. Are you sure?")
+                            .font(.footnote)
+                            .padding(.vertical, 4)
+
+                        HStack {
+                            Button("Cancel") {
+                                confirmingDeletionForTask = nil
+                            }
+                            Button("Delete") {
+                                deleteAllOccurrences(of: task)
+                                confirmingDeletionForTask = nil
+                            }
+                            .foregroundColor(.red)
+                            .buttonStyle(.borderedProminent)
+                            .tint(.red)
+                        }
+                        .listStyle(.plain)
+                        .listRowSeparator(.hidden)
                     }
                 }
                 .onDelete(perform: deleteTaskFromSwipe)
@@ -119,13 +146,15 @@ struct TasksWindow: View {
                     DatePicker("Starting From", selection: $selectedDate, displayedComponents: .date)
                         .padding(.horizontal, 20)
                 }
+                else {
+
+                }
 
                 if selectedRepeatOption != .none && !repeatIndefinitely {
                     DatePicker("Repeat Until", selection: $repeatUntilDate, displayedComponents: .date)
                         .padding(.horizontal, 20)
                 }
                 
-
                 Button("Add Task") {
                     addTask()
                 }
@@ -138,25 +167,44 @@ struct TasksWindow: View {
             */
             
             Spacer()
-            .onChange(of: taskViewOption) { _, newValue in
-                if newValue == .todayTasks {
-                    selectedDate = Calendar.current.startOfDay(for: Date()) // Set default to today
-                }
+        }
+        .onChange(of: taskViewOption) { _, newValue in
+            if newValue == .todayTasks {
+                selectedDate = Calendar.current.startOfDay(for: Date())
             }
         }
         .frame(width: 370, height: 500)
     }
 
     private func filteredTasks() -> [Task] {
-        let currentDate = getCurrentDate()
-
         switch taskViewOption {
         case .allTasks:
             return appDelegate.tasks
+
         case .specificDate:
-            return filterTasksByDate(filterDate)
+            
+            let dayStart = Calendar.current.startOfDay(for: filterDate)
+            return appDelegate.tasks.filter { $0.appearsOn(dayStart) }
+
         case .todayTasks:
-            return filterTasksByDate(currentDate)
+            let today = Calendar.current.startOfDay(for: Date())
+            return appDelegate.tasks.filter { $0.appearsOn(today) }
+        }
+    }
+    
+    private func getCurrentCompletionDate() -> Date {
+        switch taskViewOption {
+        case .allTasks:
+            
+            return Calendar.current.startOfDay(for: Date())
+
+        case .specificDate:
+            
+            return Calendar.current.startOfDay(for: filterDate)
+
+        case .todayTasks:
+            
+            return Calendar.current.startOfDay(for: Date())
         }
     }
 
@@ -185,11 +233,14 @@ struct TasksWindow: View {
     }
 
     private func addTask() {
+        // If user set indefinite => repeatUntil = nil
+        let actualRepeatUntil = repeatIndefinitely ? nil : repeatUntilDate
+
         let newTask = Task(
             title: newTaskTitle,
             date: selectedDate,
             repeatOption: selectedRepeatOption,
-            repeatUntil: repeatIndefinitely ? nil : repeatUntilDate
+            repeatUntil: actualRepeatUntil
         )
 
         withAnimation {
@@ -220,4 +271,57 @@ struct TasksWindow: View {
         formatter.dateStyle = .medium
         return formatter.string(from: date)
     }
+    
+    private func handleDelete(_ task: Task) {
+      
+        if taskViewOption == .allTasks, task.repeatOption != .none {
+            confirmingDeletionForTask = task
+            return
+        }
+      
+        if taskViewOption == .todayTasks, task.repeatOption != .none {
+            let today = Calendar.current.startOfDay(for: Date())
+            deleteSingleOccurrence(task, on: today)
+            return
+        }
+      
+        if taskViewOption == .specificDate, task.repeatOption != .none {
+            let dayStart = Calendar.current.startOfDay(for: filterDate)
+            deleteSingleOccurrence(task, on: dayStart)
+            return
+        }
+
+      
+        withAnimation {
+            if let idx = appDelegate.tasks.firstIndex(where: { $0.id == task.id }) {
+                appDelegate.tasks.remove(at: idx)
+            }
+        }
+        appDelegate.saveTasks()
+    }
+    
+    private func deleteAllOccurrences(of task: Task) {
+        withAnimation {
+            appDelegate.tasks.removeAll { $0.id == task.id }
+        }
+        appDelegate.saveTasks()
+    }
+    
+    
+    private func deleteSingleOccurrence(_ task: Task, on date: Date) {
+        if let idx = appDelegate.tasks.firstIndex(where: { $0.id == task.id }) {
+            let dayKey = dayKey(for: date)
+            appDelegate.tasks[idx].excludedDates.insert(dayKey)
+
+            appDelegate.saveTasks()
+        }
+    }
+    
+    private func dayKey(for date: Date) -> String {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "yyyy-MM-dd"
+        return fmt.string(from: date)
+    }
+    
+
 }
