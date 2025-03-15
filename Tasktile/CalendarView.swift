@@ -14,26 +14,27 @@ struct Day: Identifiable, Hashable {
     let isPlaceholder: Bool
 }
 
-func getDays(month: Int, year: Int) -> [Day] {
+func getDays(month: Int, year: Int, startWeekOnMonday: Bool) -> [Day] {
     var days: [Day] = []
     let calendar = Calendar(identifier: .gregorian)
     var components = DateComponents(year: year, month: month)
     components.day = 1
-    
+
     guard let firstDayDate = calendar.date(from: components) else { return days }
     let weekday = calendar.component(.weekday, from: firstDayDate)
-    let offset = (weekday + 5) % 7
-    
+
+    let offset = startWeekOnMonday ? (weekday + 5) % 7 : (weekday + 6) % 7
+
     for _ in 0..<offset {
         days.append(Day(number: 0, isPlaceholder: true))
     }
-    
+
     let range = calendar.range(of: .day, in: .month, for: firstDayDate)!
     for day in range {
-            days.append(Day(number: day, isPlaceholder: false))
+        days.append(Day(number: day, isPlaceholder: false))
     }
+
     return days
-    
 }
 
 struct CalendarView: View {
@@ -45,7 +46,7 @@ struct CalendarView: View {
 
     var body: some View {
         let gridItems = Array(repeating: GridItem(.flexible()), count: 7)
-        let days = getDays(month: month, year: year)
+        let days = getDays(month: month, year: year, startWeekOnMonday: appDelegate.weekStartDay == "Monday")
         let calendar = Calendar.current
 
         VStack {
@@ -73,7 +74,11 @@ struct CalendarView: View {
             Divider()
 
             HStack(spacing: 0.1) {
-                ForEach(["M", "T", "W", "T", "F", "S", "S"], id: \.self) { day in
+                let weekDays = appDelegate.weekStartDay == "Monday"
+                ? ["M", "T", "W", "T", "F", "S", "S"]
+                : ["S", "M", "T", "W", "T", "F", "S"]
+                
+                ForEach(weekDays, id: \.self) { day in
                     Text(day)
                         .frame(maxWidth: 26)
                         .font(.headline)

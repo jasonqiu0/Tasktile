@@ -32,6 +32,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     
     @AppStorage("savedTasks") private var savedTasks: String = ""
     
+    
+    @Published var weekStartDay: String = "Monday"
+    @AppStorage("weekStartDay") private var storedWeekStartDay: String = "Monday"
+    
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         popover = NSPopover()
@@ -42,6 +46,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         statusBarController = StatusBarController(popover: popover)
         
         loadTasks()
+        
+        weekStartDay = storedWeekStartDay
         
     }
 
@@ -87,4 +93,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             }
         }
     
+    func saveWeekStartDay() {
+        storedWeekStartDay = weekStartDay
+        objectWillChange.send()
+    }
 }
