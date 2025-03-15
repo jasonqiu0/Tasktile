@@ -35,15 +35,16 @@ struct TasksWindow: View {
                 Label("All Tasks", systemImage: "eye").tag(TaskViewOption.allTasks)
                 Label("Tasks for a Specific Date", systemImage: "wrench.and.screwdriver").tag(TaskViewOption.specificDate)
                 Label("Today's Tasks", systemImage: "wrench.and.screwdriver").tag(TaskViewOption.todayTasks)
+
             }
             .pickerStyle(MenuPickerStyle())
             .padding(.horizontal, 60)
 
             if taskViewOption == .specificDate {
-                DatePicker("Select Date", selection: $filterDate, displayedComponents: .date)
+                DatePicker("View Tasks for", selection: $filterDate, displayedComponents: .date)
                     .padding(.horizontal, 20)
+                
             }
-            
 
             List {
                 ForEach(filteredTasks(), id: \.id) { task in
@@ -114,12 +115,16 @@ struct TasksWindow: View {
                         .padding(.horizontal, 20)
                 }
                 
-                DatePicker("Starting From", selection: $selectedDate, displayedComponents: .date)
+                if taskViewOption != .todayTasks {
+                    DatePicker("Starting From", selection: $selectedDate, displayedComponents: .date)
+                        .padding(.horizontal, 20)
+                }
 
                 if selectedRepeatOption != .none && !repeatIndefinitely {
                     DatePicker("Repeat Until", selection: $repeatUntilDate, displayedComponents: .date)
                         .padding(.horizontal, 20)
                 }
+                
 
                 Button("Add Task") {
                     addTask()
@@ -131,7 +136,13 @@ struct TasksWindow: View {
                 NSApp.keyWindow?.close()
             }
             */
+            
             Spacer()
+            .onChange(of: taskViewOption) { _, newValue in
+                if newValue == .todayTasks {
+                    selectedDate = Calendar.current.startOfDay(for: Date()) // Set default to today
+                }
+            }
         }
         .frame(width: 370, height: 500)
     }

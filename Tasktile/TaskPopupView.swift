@@ -25,7 +25,6 @@ struct TaskPopupView: View {
         VStack {
             Text("Tasks for \(formattedDate(selectedDate))")
                 .font(.headline)
-                .padding()
 
             List {
                 ForEach(tasksForDay, id: \.id) { task in

@@ -12,7 +12,7 @@ struct Task: Identifiable, Codable {
     var title: String
     var date: Date
     var repeatOption: RepeatOption
-    var repeatUntil: Date? = nil  //
+    var repeatUntil: Date? = nil  
     var completedDates: [String: Bool] = [:]
 
     mutating func toggleCompletion(for date: Date) {
@@ -54,4 +54,3 @@ enum RepeatOption: String, Codable, CaseIterable {
     case weekly = "Weekly"
     case specificDate = "Specific Date"
 }
-

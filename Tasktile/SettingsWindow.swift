@@ -38,7 +38,7 @@ struct SettingsWindow: View {
                 }
                 .padding(.horizontal, 20)
                 
-                Picker("Select Month", selection: $appDelegate.selectedMonth) {
+                Picker("Month View", selection: $appDelegate.selectedMonth) {
                     ForEach(1...12, id: \.self) { month in
                         Text(Calendar.current.monthSymbols[month - 1]).tag(month)
                     }
@@ -49,7 +49,7 @@ struct SettingsWindow: View {
                     appDelegate.saveCalendarSettings()
                 }
 
-                Picker("Select Year", selection: $appDelegate.selectedYear) {
+                Picker("Year View", selection: $appDelegate.selectedYear) {
                     ForEach(2023...2027, id: \.self) { year in
                         Text(String(year))
                             .tag(year)
