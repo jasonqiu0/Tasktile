@@ -144,7 +144,7 @@ struct CalendarView: View {
         let calendar = Calendar.current
         guard let generatedDate = calendar.date(from: DateComponents(year: year, month: month, day: calendarDay)) else {
             print("Error: Invalid date generated for day \(calendarDay)")
-            return false // Prevent crash
+            return false 
         }
 
         return calendar.component(.weekday, from: taskDate) == calendar.component(.weekday, from: generatedDate)
@@ -157,6 +157,7 @@ struct CalendarView: View {
         if completedTasks == 0 { return Color.gray.opacity(0.3) }
 
         let opacity = Double(completedTasks) / Double(tasksForDay.count)
-        return Color.green.opacity(opacity)
+        
+        return appDelegate.taskColor.opacity(opacity) 
     }
 }

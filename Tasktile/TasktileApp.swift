@@ -36,6 +36,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     @Published var weekStartDay: String = "Monday"
     @AppStorage("weekStartDay") private var storedWeekStartDay: String = "Monday"
     
+    @AppStorage("taskColorHex") private var taskColorHex: String = "#00FF00"
+    @Published var taskColor: Color = Color.green
+    
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         popover = NSPopover()
@@ -48,6 +51,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         loadTasks()
         
         weekStartDay = storedWeekStartDay
+        
+        taskColor = Color(hex: taskColorHex)
         
     }
 
@@ -97,4 +102,36 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         storedWeekStartDay = weekStartDay
         objectWillChange.send()
     }
+    
+    func saveTaskColor(_ color: Color) {
+        taskColorHex = color.toHex() ?? "#00FF00"
+        taskColor = color
+        objectWillChange.send()
+    }
+    
 }
+
+extension Color {
+    func toHex() -> String? {
+        guard let components = NSColor(self).cgColor.components, components.count >= 3 else { return nil }
+        let r = Int(components[0] * 255)
+        let g = Int(components[1] * 255)
+        let b = Int(components[2] * 255)
+        return String(format: "#%02X%02X%02X", r, g, b)
+    }
+
+    init(hex: String) {
+        let scanner = Scanner(string: hex)
+        scanner.currentIndex = hex.index(after: hex.startIndex)
+        
+        var rgbValue: UInt64 = 0
+        scanner.scanHexInt64(&rgbValue)
+        
+        let red = Double((rgbValue >> 16) & 0xFF) / 255.0
+        let green = Double((rgbValue >> 8) & 0xFF) / 255.0
+        let blue = Double(rgbValue & 0xFF) / 255.0
+        
+        self.init(red: red, green: green, blue: blue)
+    }
+}
+
