@@ -25,7 +25,26 @@ struct Task: Identifiable, Codable {
             completedDates[dateString] = true
         }
     }
+    
+    mutating func extendOrShortenTask(from startDate: Date, to endDate: Date) {
+        guard repeatOption != .none else { return }
 
+        if startDate > self.date {
+            self.date = startDate
+        }
+
+        self.repeatUntil = endDate
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+
+        self.completedDates = self.completedDates.filter { key, _ in
+            if let keyDate = dateFormatter.date(from: key) {
+                return keyDate >= startDate && keyDate <= endDate
+            }
+            return false
+        }
+    }
     
     func shouldRepeat(on date: Date) -> Bool {
         guard repeatOption != .none else { return false }

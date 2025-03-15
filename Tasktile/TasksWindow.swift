@@ -21,6 +21,10 @@ struct TasksWindow: View {
     @State private var repeatIndefinitely: Bool = true
     
     @State private var confirmingDeletionForTask: Task? = nil
+    
+    @State private var taskBeingExtended: Task? = nil
+    @State private var extendFromDate = Date()
+    @State private var extendToDate = Date()
 
     enum TaskViewOption: String, CaseIterable {
         case allTasks = "All Tasks"
@@ -89,12 +93,27 @@ struct TasksWindow: View {
                                 .foregroundColor(.gray)
                         }
                         
-
+                        if task.repeatOption == .daily || task.repeatOption == .weekly {
+                            Button {
+                                if taskBeingExtended?.id == task.id {
+                                    taskBeingExtended = nil
+                                } else {
+                                    taskBeingExtended = task
+                                    extendFromDate = task.date
+                                    extendToDate = task.repeatUntil ?? Date().addingTimeInterval(60 * 60 * 24 * 7)
+                                }
+                            } label: {
+                                Image(systemName: "arrow.left.arrow.right.square.fill")
+                            }
+                        }
+                        
                         Button {
                             handleDelete(task)
                         } label: {
                             Image(systemName: "trash.fill")
                         }
+
+
                     }
                     if let t = confirmingDeletionForTask,
                        t.id == task.id,
@@ -105,9 +124,6 @@ struct TasksWindow: View {
                             .padding(.vertical, 4)
 
                         HStack {
-                            Button("Cancel") {
-                                confirmingDeletionForTask = nil
-                            }
                             Button("Delete") {
                                 deleteAllOccurrences(of: task)
                                 confirmingDeletionForTask = nil
@@ -115,13 +131,49 @@ struct TasksWindow: View {
                             .foregroundColor(.red)
                             .buttonStyle(.borderedProminent)
                             .tint(.red)
+                            Button("Cancel") {
+                                confirmingDeletionForTask = nil
+                            }
                         }
                         .listStyle(.plain)
                         .listRowSeparator(.hidden)
                     }
+                    
+                    if let t = taskBeingExtended, t.id == task.id {
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text("Extend or Shorten a Repeating Task")
+                                .font(.footnote)
+                                .foregroundColor(.gray)
+                            /*
+                            DatePicker("From:", selection: $extendFromDate, displayedComponents: .date)
+                                .datePickerStyle(.compact)
+                            */
+                            DatePicker("Extend/Shorten to:", selection: $extendToDate, displayedComponents: .date)
+                                .datePickerStyle(.compact)
+
+                            HStack {
+                                Button("Apply") {
+                                    if let index = appDelegate.tasks.firstIndex(where: { $0.id == task.id }) {
+                                        appDelegate.tasks[index].extendOrShortenTask(from: extendFromDate, to: extendToDate)
+                                        appDelegate.saveTasks()
+                                    }
+                                    taskBeingExtended = nil
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .padding(.trailing, 5)
+
+                                Button("Cancel") {
+                                    taskBeingExtended = nil
+                                }
+                                .foregroundColor(.red)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
                 }
                 .onDelete(perform: deleteTaskFromSwipe)
             }
+            
 
             VStack {
                 TextField("New Task", text: $newTaskTitle)
@@ -233,7 +285,6 @@ struct TasksWindow: View {
     }
 
     private func addTask() {
-        // If user set indefinite => repeatUntil = nil
         let actualRepeatUntil = repeatIndefinitely ? nil : repeatUntilDate
 
         let newTask = Task(
@@ -321,6 +372,14 @@ struct TasksWindow: View {
         let fmt = DateFormatter()
         fmt.dateFormat = "yyyy-MM-dd"
         return fmt.string(from: date)
+    }
+    
+    private func applyExtension(for task: Task) {
+        if let index = appDelegate.tasks.firstIndex(where: { $0.id == task.id }) {
+            appDelegate.tasks[index].extendOrShortenTask(from: extendFromDate, to: extendToDate)
+            appDelegate.saveTasks()
+        }
+        taskBeingExtended = nil
     }
     
 
