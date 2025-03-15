@@ -98,7 +98,8 @@ struct CalendarView: View {
             LazyVGrid(columns: gridItems, spacing: 5) {
                 ForEach(days, id: \.self) { day in
                     let generatedDate = calendar.date(from: DateComponents(year: year, month: month, day: day.number))
-
+                    let isToday = generatedDate.map { Calendar.current.isDateInToday($0) } ?? false
+                    
                     ZStack {
                         let tasksForDay = getTasksForDay(day.number)
 
@@ -114,6 +115,12 @@ struct CalendarView: View {
                                     selectedDate = generatedDate
                                     showTaskPopup = true
                                 }
+                            if isToday {
+                                Circle()
+                                    .fill(Color.white)
+                                    .frame(width: 5, height: 5)
+                            }
+                            
                             if appDelegate.showDate {
                                 Text("\(day.number)")
                             }
