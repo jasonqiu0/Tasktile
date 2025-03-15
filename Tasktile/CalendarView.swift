@@ -43,7 +43,10 @@ struct CalendarView: View {
     let year: Int
     @AppStorage("savedTasks") private var savedTasks: String = ""
     @State private var tasks: [Task] = []
-
+    
+    @State private var selectedDate: Date? = nil
+    @State private var showTaskPopup = false
+    
     var body: some View {
         let gridItems = Array(repeating: GridItem(.flexible()), count: 7)
         let days = getDays(month: month, year: year, startWeekOnMonday: appDelegate.weekStartDay == "Monday")
@@ -101,7 +104,10 @@ struct CalendarView: View {
                                         .stroke(Color.white.opacity(0.2), lineWidth: 1) : nil
                                 )
                                 .frame(width: 20, height: 20)
-
+                                .onTapGesture {
+                                    selectedDate = generatedDate
+                                    showTaskPopup = true
+                                }
                             if appDelegate.showDate {
                                 Text("\(day.number)")
                             }
@@ -114,6 +120,12 @@ struct CalendarView: View {
         .onAppear {
             loadTasks()
         }
+        .popover(isPresented: $showTaskPopup) {
+            if let selectedDate = selectedDate {
+                TaskPopupView(selectedDate: selectedDate, appDelegate: appDelegate)
+            }
+        }
+        
     }
 
     private func loadTasks() {
