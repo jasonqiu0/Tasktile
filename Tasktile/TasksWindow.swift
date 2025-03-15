@@ -101,23 +101,25 @@ struct TasksWindow: View {
                     .padding(.horizontal, 60)
 
                 Picker("Repeats", selection: $selectedRepeatOption) {
-                    ForEach(RepeatOption.allCases, id: \.self) { option in
-                        Text(option.rawValue).tag(option)
-                    }
+                    Text("Only on This Day").tag(RepeatOption.none)
+                    Text("Daily").tag(RepeatOption.daily)
+                    Text("Weekly").tag(RepeatOption.weekly)
                 }
                 .pickerStyle(MenuPickerStyle())
                 .padding(.horizontal, 90)
                 
-                Toggle("Repeat Indefinitely", isOn: $repeatIndefinitely)
-                    .padding(.horizontal, 20)
                 
-                DatePicker("Starting From", selection: $selectedDate, displayedComponents: .date)
-                
-                if !repeatIndefinitely {
-                    DatePicker("Repeat Until", selection: $repeatUntilDate, displayedComponents: .date)
+                if selectedRepeatOption == .daily || selectedRepeatOption == .weekly {
+                    Toggle("Repeat Indefinitely", isOn: $repeatIndefinitely)
                         .padding(.horizontal, 20)
                 }
                 
+                DatePicker("Starting From", selection: $selectedDate, displayedComponents: .date)
+
+                if selectedRepeatOption != .none && !repeatIndefinitely {
+                    DatePicker("Repeat Until", selection: $repeatUntilDate, displayedComponents: .date)
+                        .padding(.horizontal, 20)
+                }
 
                 Button("Add Task") {
                     addTask()

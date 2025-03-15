@@ -13,7 +13,7 @@ struct SettingsWindow: View {
         VStack {
             
             List {
-                Toggle("Show date",isOn: $appDelegate.showDate)
+                Toggle("Show Dates on Activity Map",isOn: $appDelegate.showDate)
                 
             }
             
