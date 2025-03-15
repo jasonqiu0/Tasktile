@@ -37,6 +37,34 @@ struct SettingsWindow: View {
                         .labelsHidden()
                 }
                 .padding(.horizontal, 20)
+                
+                Picker("Select Month", selection: $appDelegate.selectedMonth) {
+                    ForEach(1...12, id: \.self) { month in
+                        Text(Calendar.current.monthSymbols[month - 1]).tag(month)
+                    }
+                }
+                .pickerStyle(MenuPickerStyle())
+                .padding(.horizontal, 20)
+                .onChange(of: appDelegate.selectedMonth) { oldValue, newValue in
+                    appDelegate.saveCalendarSettings()
+                }
+
+                Picker("Select Year", selection: $appDelegate.selectedYear) {
+                    ForEach(2023...2027, id: \.self) { year in
+                        Text(String(year))
+                            .tag(year)
+                    }
+                }
+                .pickerStyle(MenuPickerStyle())
+                .padding(.horizontal, 20)
+                .onChange(of: appDelegate.selectedYear) { oldValue, newValue in
+                    appDelegate.saveCalendarSettings()
+                }
+                
+                Button("Restore to Default Month & Year") {
+                    appDelegate.restoreToDefaultCalendarView()
+                }
+                .padding()
             }
             /*
             Button("Close") {

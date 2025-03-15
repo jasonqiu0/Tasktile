@@ -39,6 +39,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     @AppStorage("taskColorHex") private var taskColorHex: String = "#00FF00"
     @Published var taskColor: Color = Color.green
     
+    @Published var selectedMonth: Int = Calendar.current.component(.month, from: Date())
+    @Published var selectedYear: Int = Calendar.current.component(.year, from: Date())
+
+    @AppStorage("savedMonth") private var storedMonth: Int = Calendar.current.component(.month, from: Date())
+    @AppStorage("savedYear") private var storedYear: Int = Calendar.current.component(.year, from: Date())
+
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         popover = NSPopover()
@@ -107,6 +113,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         taskColorHex = color.toHex() ?? "#00FF00"
         taskColor = color
         objectWillChange.send()
+    }
+    
+    func saveCalendarSettings() {
+        storedMonth = selectedMonth
+        storedYear = selectedYear
+        objectWillChange.send()
+    }
+
+    func restoreToDefaultCalendarView() {
+        selectedMonth = Calendar.current.component(.month, from: Date())
+        selectedYear = Calendar.current.component(.year, from: Date())
+        saveCalendarSettings()
     }
     
 }

@@ -49,7 +49,13 @@ struct CalendarView: View {
     
     var body: some View {
         let gridItems = Array(repeating: GridItem(.flexible()), count: 7)
-        let days = getDays(month: month, year: year, startWeekOnMonday: appDelegate.weekStartDay == "Monday")
+        
+        let days = getDays(
+            month: appDelegate.selectedMonth,
+            year: appDelegate.selectedYear,
+            startWeekOnMonday: appDelegate.weekStartDay == "Monday"
+        )
+        
         let calendar = Calendar.current
 
         VStack {
