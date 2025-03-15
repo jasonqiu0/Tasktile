@@ -14,13 +14,17 @@ struct TasksWindow: View {
     @State private var newTaskTitle: String = ""
     @State private var selectedDate = Date()
     @State private var selectedRepeatOption: RepeatOption = .none
-
     @State private var taskViewOption: TaskViewOption = .allTasks
     @State private var filterDate = Date()
+    
+    @State private var repeatUntilDate: Date = Date().addingTimeInterval(60*60*24*7)
+    @State private var repeatIndefinitely: Bool = true
+
 
     enum TaskViewOption: String, CaseIterable {
         case allTasks = "All Tasks"
         case specificDate = "Tasks for a Specific Date"
+        case todayTasks = "Today's Tasks"
     }
 
     var body: some View {
@@ -28,33 +32,35 @@ struct TasksWindow: View {
             Spacer()
             
             Picker("View:", selection: $taskViewOption) {
-                ForEach(TaskViewOption.allCases, id: \.self) { option in
-                    Text(option.rawValue).tag(option)
-                }
+                Label("All Tasks", systemImage: "eye").tag(TaskViewOption.allTasks)
+                Label("Tasks for a Specific Date", systemImage: "wrench.and.screwdriver").tag(TaskViewOption.specificDate)
+                Label("Today's Tasks", systemImage: "wrench.and.screwdriver").tag(TaskViewOption.todayTasks)
             }
             .pickerStyle(MenuPickerStyle())
             .padding(.horizontal, 60)
 
-         
             if taskViewOption == .specificDate {
                 DatePicker("Select Date", selection: $filterDate, displayedComponents: .date)
                     .padding(.horizontal, 20)
             }
+            
 
             List {
                 ForEach(filteredTasks(), id: \.id) { task in
                     HStack {
-                        Toggle("", isOn: Binding(
-                            get: { task.isCompleted(for: filterDate) },
-                            set: { newValue in
-                                if let index = appDelegate.tasks.firstIndex(where: { $0.id == task.id }) {
-                                    appDelegate.tasks[index].toggleCompletion(for: filterDate)
-                                    appDelegate.saveTasks()
+                        if taskViewOption != .allTasks {
+                            Toggle("", isOn: Binding(
+                                get: { task.isCompleted(for: getCurrentFilterDate()) },
+                                set: { newValue in
+                                    if let index = appDelegate.tasks.firstIndex(where: { $0.id == task.id }) {
+                                        appDelegate.tasks[index].toggleCompletion(for: getCurrentFilterDate())
+                                        appDelegate.saveTasks()
+                                    }
                                 }
-                            }
-                        ))
-                        .labelsHidden()
-                        .toggleStyle(CheckboxToggleStyle())
+                            ))
+                            .labelsHidden()
+                            .toggleStyle(CheckboxToggleStyle())
+                        }
 
                         VStack(alignment: .leading) {
                             TextField("Enter Task", text: Binding(
@@ -67,14 +73,17 @@ struct TasksWindow: View {
                                 }
                             ))
                             .textFieldStyle(RoundedBorderTextFieldStyle())
+
                             Text("Repeat: \(task.repeatOption.rawValue)")
                                 .font(.caption)
                                 .foregroundColor(.gray)
-                            
+
                             Text("Scheduled: \(formattedDate(task.date))")
                                 .font(.caption)
                                 .foregroundColor(.gray)
+                            
                         }
+                        
 
                         Button(action: {
                             deleteTask(task)
@@ -99,35 +108,57 @@ struct TasksWindow: View {
                 .pickerStyle(MenuPickerStyle())
                 .padding(.horizontal, 90)
                 
-                DatePicker("Select Date", selection: $selectedDate, displayedComponents: .date)
+                Toggle("Repeat Indefinitely", isOn: $repeatIndefinitely)
+                    .padding(.horizontal, 20)
+                
+                DatePicker("Starting From", selection: $selectedDate, displayedComponents: .date)
+                
+                if !repeatIndefinitely {
+                    DatePicker("Repeat Until", selection: $repeatUntilDate, displayedComponents: .date)
+                        .padding(.horizontal, 20)
+                }
+                
 
                 Button("Add Task") {
                     addTask()
                 }
                 .disabled(newTaskTitle.isEmpty)
             }
-
+            /*
             Button("Close") {
                 NSApp.keyWindow?.close()
             }
-            
+            */
             Spacer()
         }
-        .frame(width: 360, height: 500)
+        .frame(width: 370, height: 500)
     }
 
     private func filteredTasks() -> [Task] {
-        if taskViewOption == .allTasks {
-            return appDelegate.tasks
-        } else {
-            let calendar = Calendar.current
-            return appDelegate.tasks.filter { task in
-                let taskDay = calendar.component(.day, from: task.date)
-                let filterDay = calendar.component(.day, from: filterDate)
+        let currentDate = getCurrentDate()
 
-                return taskDay == filterDay || task.repeatOption == .daily ||
-                       (task.repeatOption == .weekly && isSameWeekday(task.date, filterDate))
-            }
+        switch taskViewOption {
+        case .allTasks:
+            return appDelegate.tasks
+        case .specificDate:
+            return filterTasksByDate(filterDate)
+        case .todayTasks:
+            return filterTasksByDate(currentDate)
+        }
+    }
+
+    private func getCurrentDate() -> Date {
+        return Calendar.current.startOfDay(for: Date())
+    }
+
+    private func filterTasksByDate(_ date: Date) -> [Task] {
+        let calendar = Calendar.current
+        return appDelegate.tasks.filter { task in
+            let taskDay = calendar.component(.day, from: task.date)
+            let filterDay = calendar.component(.day, from: date)
+
+            return taskDay == filterDay || task.repeatOption == .daily ||
+                   (task.repeatOption == .weekly && isSameWeekday(task.date, date))
         }
     }
 
@@ -136,8 +167,18 @@ struct TasksWindow: View {
         return calendar.component(.weekday, from: taskDate) == calendar.component(.weekday, from: selectedDate)
     }
 
+    private func getCurrentFilterDate() -> Date {
+        return taskViewOption == .todayTasks ? getCurrentDate() : filterDate
+    }
+
     private func addTask() {
-        let newTask = Task(title: newTaskTitle, date: selectedDate, repeatOption: selectedRepeatOption)
+        let newTask = Task(
+            title: newTaskTitle,
+            date: selectedDate,
+            repeatOption: selectedRepeatOption,
+            repeatUntil: repeatIndefinitely ? nil : repeatUntilDate
+        )
+
         withAnimation {
             appDelegate.tasks.append(newTask)
         }

@@ -121,11 +121,19 @@ struct CalendarView: View {
 
     private func getTasksForDay(_ day: Int) -> [Task] {
         let calendar = Calendar.current
+        let currentDate = calendar.date(from: DateComponents(year: year, month: month, day: day))
+
         return appDelegate.tasks.filter { task in
             let taskDay = calendar.component(.day, from: task.date)
-            return taskDay == day || task.repeatOption == .daily || (task.repeatOption == .weekly && isSameWeekday(task.date, day))
+
+            let repeatsCorrectly = task.repeatOption == .daily ||
+                                  (task.repeatOption == .weekly && isSameWeekday(task.date, day))
+
+            return (taskDay == day || repeatsCorrectly) &&
+                   (task.repeatUntil == nil || (currentDate != nil && currentDate! <= task.repeatUntil!))
         }
     }
+
 
     private func isSameWeekday(_ taskDate: Date, _ calendarDay: Int) -> Bool {
         let calendar = Calendar.current

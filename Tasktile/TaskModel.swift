@@ -12,6 +12,7 @@ struct Task: Identifiable, Codable {
     var title: String
     var date: Date
     var repeatOption: RepeatOption
+    var repeatUntil: Date? = nil  //
     var completedDates: [String: Bool] = [:]
 
     mutating func toggleCompletion(for date: Date) {
@@ -23,6 +24,12 @@ struct Task: Identifiable, Codable {
         }
     }
 
+    func shouldRepeat(on date: Date) -> Bool {
+        guard repeatOption != .none else { return false }
+        if let repeatUntil = repeatUntil, date > repeatUntil { return false }
+        return true
+    }
+    
     func isCompleted(for date: Date) -> Bool {
         return completedDates[formattedDate(date)] ?? false
     }
