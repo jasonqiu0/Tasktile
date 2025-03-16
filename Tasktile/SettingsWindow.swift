@@ -15,7 +15,7 @@ struct SettingsWindow: View {
         VStack {
             
             List {
-                Toggle("Show Dates on Activity Map",isOn: $appDelegate.showDate)
+                Toggle("Show Dates on Activity Graph",isOn: $appDelegate.showDate)
                     .padding(.horizontal, 20)
                 
                 Picker("Start Week On", selection: $appDelegate.weekStartDay) {
@@ -37,7 +37,7 @@ struct SettingsWindow: View {
                         .labelsHidden()
                 }
                 .padding(.horizontal, 20)
-                
+                /*
                 Picker("Month View", selection: $appDelegate.selectedMonth) {
                     ForEach(1...12, id: \.self) { month in
                         Text(Calendar.current.monthSymbols[month - 1]).tag(month)
@@ -65,6 +65,7 @@ struct SettingsWindow: View {
                     appDelegate.restoreToDefaultCalendarView()
                 }
                 .padding()
+                 */
             }
             /*
             Button("Close") {
