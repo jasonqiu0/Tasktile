@@ -36,14 +36,14 @@ struct TasksWindow: View {
         VStack {
             Spacer()
             
-            Picker("View:", selection: $taskViewOption) {
-                Label("All Tasks", systemImage: "circle.grid.2x1.fill").tag(TaskViewOption.allTasks)
-                Label("Tasks for a Specific Date", systemImage: "circle.grid.2x1.left.filled").tag(TaskViewOption.specificDate)
-                Label("Today's Tasks", systemImage: "circle.grid.2x1.right.filled").tag(TaskViewOption.todayTasks)
+            Picker("", selection: $taskViewOption) {
+                Label("All Tasks", systemImage: "eyeglasses").tag(TaskViewOption.allTasks)
+                Label("Tasks for a Specific Date", systemImage: "note.text.badge.plus").tag(TaskViewOption.specificDate)
+                Label("Today's Tasks", systemImage: "note.text.badge.plus").tag(TaskViewOption.todayTasks)
 
             }
             .pickerStyle(MenuPickerStyle())
-            .padding(.horizontal, 60)
+            .padding(.horizontal, 30)
 
             if taskViewOption == .specificDate {
                 DatePicker("View Tasks for", selection: $filterDate, displayedComponents: .date)
@@ -55,22 +55,23 @@ struct TasksWindow: View {
                 ForEach(filteredTasks(), id: \.id) { task in
                     HStack {
 
-                        Toggle("", isOn: Binding(
-                            get: {
-                                let dateForCompletion = getCurrentCompletionDate()
-                                return task.isCompleted(for: dateForCompletion)
-                            },
-                            set: { newValue in
-                                if let idx = appDelegate.tasks.firstIndex(where: { $0.id == task.id }) {
+                        if taskViewOption != .allTasks {
+                            Toggle("", isOn: Binding(
+                                get: {
                                     let dateForCompletion = getCurrentCompletionDate()
-                                    appDelegate.tasks[idx].toggleCompletion(for: dateForCompletion)
-                                    appDelegate.saveTasks()
+                                    return task.isCompleted(for: dateForCompletion)
+                                },
+                                set: { newValue in
+                                    if let idx = appDelegate.tasks.firstIndex(where: { $0.id == task.id }) {
+                                        let dateForCompletion = getCurrentCompletionDate()
+                                        appDelegate.tasks[idx].toggleCompletion(for: dateForCompletion)
+                                        appDelegate.saveTasks()
+                                    }
                                 }
-                            }
-                        ))
-                        .labelsHidden()
-                        .toggleStyle(CheckboxToggleStyle())
-
+                            ))
+                            .labelsHidden()
+                            .toggleStyle(CheckboxToggleStyle())
+                        }
 
                         VStack(alignment: .leading) {
                             TextField("Enter Task", text: Binding(
