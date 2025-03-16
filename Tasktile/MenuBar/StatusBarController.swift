@@ -21,7 +21,16 @@ class StatusBarController {
         
         if let button = statusItem.button {
 
-            button.image = NSImage(systemSymbolName: "calendar", accessibilityDescription: "Calendar")
+            if let image = NSImage(systemSymbolName: "square.grid.3x3.square",
+                                   accessibilityDescription: "Calendar") {
+                let config = NSImage.SymbolConfiguration(
+                    pointSize: 14,
+                    weight: .light,
+                    scale: .large
+                )
+                let boldSymbol = image.withSymbolConfiguration(config)
+                button.image = boldSymbol
+            }
    
             button.action = #selector(togglePopover)
             button.target = self

@@ -37,9 +37,9 @@ struct TasksWindow: View {
             Spacer()
             
             Picker("View:", selection: $taskViewOption) {
-                Label("All Tasks", systemImage: "eye").tag(TaskViewOption.allTasks)
-                Label("Tasks for a Specific Date", systemImage: "wrench.and.screwdriver").tag(TaskViewOption.specificDate)
-                Label("Today's Tasks", systemImage: "wrench.and.screwdriver").tag(TaskViewOption.todayTasks)
+                Label("All Tasks", systemImage: "circle.grid.2x1.fill").tag(TaskViewOption.allTasks)
+                Label("Tasks for a Specific Date", systemImage: "circle.grid.2x1.left.filled").tag(TaskViewOption.specificDate)
+                Label("Today's Tasks", systemImage: "circle.grid.2x1.right.filled").tag(TaskViewOption.todayTasks)
 
             }
             .pickerStyle(MenuPickerStyle())
