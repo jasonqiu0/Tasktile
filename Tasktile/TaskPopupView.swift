@@ -12,12 +12,8 @@ struct TaskPopupView: View {
     @ObservedObject var appDelegate: AppDelegate
 
     var tasksForDay: [Task] {
-        let calendar = Calendar.current
         return appDelegate.tasks.filter { task in
-            let taskDay = calendar.component(.day, from: task.date)
-            let selectedDay = calendar.component(.day, from: selectedDate)
-
-            return taskDay == selectedDay || task.shouldRepeat(on: selectedDate)
+            task.appearsOn(selectedDate)
         }
     }
 
