@@ -1,5 +1,5 @@
 # Tasktile
-Track tasks with a tiled Activity Graph that visually represents task completion for each day. 
+Track tasks with a tiled Activity Graph that visually represents task completion for each day of the month. 
 
 ###### Inspired by GitHub's Contribution Graph
 ---
