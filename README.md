@@ -1,5 +1,10 @@
 # Tasktile
+
 Track tasks with a tiled Activity Graph that visually represents task completion for each day of the month. 
+<p align="center">
+  <img width="352" alt="image" src="https://github.com/user-attachments/assets/26e20854-5238-4862-bdd4-eeecbfcd3586" />
+
+</p>
 
 ###### Inspired by GitHub's Contribution Graph
 ---
