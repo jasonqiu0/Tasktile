@@ -1,0 +1,12 @@
+{
+  "data" : [
+    {
+      "filename" : "Tasktile-AppIcon.icns",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
